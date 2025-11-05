@@ -81,12 +81,39 @@
         </div>
     </div>
 
-    <script>
-        let currentUser = '';
-        let currentRoom = '';
-        let messagePolling;
-        
-        async function joinRoom() {
+        <script>
+            // Configuration - can be overridden via URL parameters or window.chatConfig
+            const getConfig = () => {
+                const urlParams = new URLSearchParams(window.location.search);
+                const serverIP = urlParams.get('serverIP') || 
+                                window.chatConfig?.serverIP || 
+                                'localhost';
+                const goPort = urlParams.get('goPort') || 
+                              window.chatConfig?.goPort || 
+                              '8080';
+                const pythonPort = urlParams.get('pythonPort') || 
+                                  window.chatConfig?.pythonPort || 
+                                  '8091';
+                
+                return {
+                    GO_SERVICE_URL: `http://${serverIP}:${goPort}`,
+                    PYTHON_SERVICE_URL: `http://${serverIP}:${pythonPort}`
+                };
+            };
+            
+            const config = getConfig();
+            const GO_SERVICE_URL = config.GO_SERVICE_URL;
+            const PYTHON_SERVICE_URL = config.PYTHON_SERVICE_URL;
+            
+            // Display current configuration
+            console.log('Service Configuration:', {
+                GO_SERVICE_URL,
+                PYTHON_SERVICE_URL
+            });
+            
+            let currentUser = '';
+            let currentRoom = '';
+            let messagePolling;        async function joinRoom() {
             const username = document.getElementById('username').value;
             const roomid = document.getElementById('roomid').value;
             
@@ -95,10 +122,8 @@
                 return;
             }
             
-            try {
-                const response = await fetch(`http://localhost:8080/joinroom?username=${username}&roomid=${roomid}`);
-                
-                if (response.ok) {
+                try {
+                    const response = await fetch(`${GO_SERVICE_URL}/joinroom?username=${username}&roomid=${roomid}`);                if (response.ok) {
                     currentUser = username;
                     currentRoom = roomid;
                     
@@ -127,10 +152,8 @@
                 return;
             }
             
-            try {
-                const response = await fetch(`http://localhost:8080/joingrpcroom?username=${username}&roomid=${roomid}`);
-                
-                if (response.ok) {
+                try {
+                    const response = await fetch(`${GO_SERVICE_URL}/joingrpcroom?username=${username}&roomid=${roomid}`);                if (response.ok) {
                     currentUser = username;
                     currentRoom = roomid;
                     
@@ -167,7 +190,7 @@
             if (!message) return;
             
             try {
-                const response = await fetch('http://localhost:8091/message', {
+                const response = await fetch(`${PYTHON_SERVICE_URL}/message`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -189,7 +212,7 @@
         
         async function fetchMessages() {
             try {
-                const response = await fetch(`http://localhost:8091/messages?roomid=${currentRoom}`);
+                const response = await fetch(`${PYTHON_SERVICE_URL}/messages?roomid=${currentRoom}`);
                 if (response.ok) {
                     const messages = await response.json();
                     displayMessages(messages);

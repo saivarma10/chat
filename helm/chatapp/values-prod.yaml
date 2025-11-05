@@ -3,6 +3,12 @@
 
 global:
   imagePullPolicy: Always
+  # Update this to your production environment IP or domain
+  externalIP: "10.211.13.240"
+  externalServiceURLs:
+    goService: "http://10.211.13.240:8080"
+    pythonService: "http://10.211.13.240:8091"
+    javaService: "http://10.211.13.240:8090"
   # Uncomment and configure for private registry
   # imagePullSecrets:
   #   - name: regcred
@@ -42,8 +48,8 @@ kafka:
 pythonService:
   replicas: 3
   image:
-    repository: registry.example.com/chatapp-python
-    tag: "1.0.0"
+    repository: varmasai10/chatapp-python
+    tag: "latest"
   resources:
     requests:
       memory: "512Mi"
@@ -56,8 +62,8 @@ pythonService:
 javaService:
   replicas: 3
   image:
-    repository: registry.example.com/chatapp-java
-    tag: "1.0.0"
+    repository: varmasai10/chatapp-java
+    tag: "latest"
   resources:
     requests:
       memory: "1Gi"
@@ -70,8 +76,8 @@ javaService:
 goService:
   replicas: 3
   image:
-    repository: registry.example.com/chatapp-go
-    tag: "1.0.0"
+    repository: varmasai10/chatapp-go
+    tag: "latest"
   resources:
     requests:
       memory: "256Mi"

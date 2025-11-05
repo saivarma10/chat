@@ -34,7 +34,7 @@ spec:
     spec:
       containers:
         - name: python-service
-          image: chatapp-python:latest
+          image: varmasai10/chatapp-python:latest
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8091

@@ -3,6 +3,12 @@
 
 global:
   imagePullPolicy: IfNotPresent
+  # Update this to your development environment IP
+  externalIP: "10.211.13.240"
+  externalServiceURLs:
+    goService: "http://10.211.13.240:8080"
+    pythonService: "http://10.211.13.240:8091"
+    javaService: "http://10.211.13.240:8090"
 
 # Development Zookeeper configuration
 zookeeper:
@@ -34,8 +40,6 @@ kafka:
 pythonService:
   replicas: 1
   env:
-    # For local development, you might use localhost
-    # kafkaBootstrapServers: "localhost:9092"
     kafkaBootstrapServers: "kafka:29092"
   resources:
     requests:
@@ -53,8 +57,6 @@ javaService:
     pythonServiceHost: "python-service"
     pythonServiceHttpPort: "8091"
     pythonServiceGrpcPort: "50052"
-    # For local development outside cluster:
-    # pythonServiceHost: "localhost"
   resources:
     requests:
       memory: "256Mi"
@@ -70,8 +72,6 @@ goService:
     javaServiceHost: "java-service"
     javaServiceHttpPort: "8090"
     javaServiceGrpcPort: "9090"
-    # For local development outside cluster:
-    # javaServiceHost: "localhost"
   resources:
     requests:
       memory: "64Mi"

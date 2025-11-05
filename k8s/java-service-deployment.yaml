@@ -34,7 +34,7 @@ spec:
     spec:
       containers:
         - name: java-service
-          image: chatapp-java:latest
+          image: varmasai10/chatapp-java:latest
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8090

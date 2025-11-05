@@ -31,7 +31,7 @@ spec:
     spec:
       containers:
         - name: go-service
-          image: chatapp-go:latest
+          image: varmasai10/chatapp-go:latest
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080

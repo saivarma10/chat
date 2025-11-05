@@ -8,6 +8,16 @@ global:
   # If using a private registry, specify imagePullSecrets
   imagePullSecrets: []
   # - name: regcred
+  
+  # External access configuration
+  # Set this to your server/cluster IP for external access
+  externalIP: "10.211.13.240"
+  # Base URL for accessing services from outside the cluster
+  # Used in UI for making API calls
+  externalServiceURLs:
+    goService: "http://10.211.13.240:8080"
+    pythonService: "http://10.211.13.240:8091"
+    javaService: "http://10.211.13.240:8090"
 
 # Zookeeper configuration
 zookeeper:
@@ -179,18 +189,9 @@ ui:
   service:
     type: LoadBalancer
     port: 80
-  # Override with your index.html content
-  indexHtml: |
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <title>ChatApp</title>
-    </head>
-    <body>
-      <h1>ChatApp</h1>
-      <p>Please update ui.indexHtml in values.yaml</p>
-    </body>
-    </html>
+  # ConfigMap for index.html
+  # The URLs will be automatically configured based on global.externalServiceURLs
+  configureIndexHtml: true
   resources:
     requests:
       memory: "64Mi"
