@@ -7,7 +7,7 @@ global:
   externalIP: "10.211.13.240"
   externalServiceURLs:
     goService: "http://10.211.13.240:8080"
-    pythonService: "http://10.211.13.240:8091"
+    pythonService: "http://10.211.13.240:8088"
     javaService: "http://10.211.13.240:8090"
 
 # Development Zookeeper configuration
@@ -55,8 +55,8 @@ javaService:
   env:
     springKafkaBootstrapServers: "kafka:29092"
     pythonServiceHost: "python-service"
-    pythonServiceHttpPort: "8091"
-    pythonServiceGrpcPort: "50052"
+    pythonServiceHttpPort: "8088"
+    pythonServiceGrpcPort: "8087"
   resources:
     requests:
       memory: "256Mi"
@@ -71,7 +71,7 @@ goService:
   env:
     javaServiceHost: "java-service"
     javaServiceHttpPort: "8090"
-    javaServiceGrpcPort: "9090"
+    javaServiceGrpcPort: "8089"
   resources:
     requests:
       memory: "64Mi"

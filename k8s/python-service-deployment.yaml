@@ -8,10 +8,10 @@ metadata:
 spec:
   type: ClusterIP
   ports:
-    - port: 8091
+    - port: 8088
       targetPort: 8091
       name: http
-    - port: 50052
+    - port: 8087
       targetPort: 50052
       name: grpc
   selector:

@@ -18,7 +18,7 @@ spec:
               service:
                 name: ui-service
                 port:
-                  number: 80
+                  number: 8000
           - path: /api/go
             pathType: Prefix
             backend:
@@ -39,4 +39,4 @@ spec:
               service:
                 name: python-service
                 port:
-                  number: 8091
+                  number: 8088

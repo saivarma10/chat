@@ -91,7 +91,7 @@ data:
         <script>
             // Configure service endpoints - CHANGE THESE TO YOUR SERVER IP
             const GO_SERVICE_URL = 'http://10.211.13.240:8080';
-            const PYTHON_SERVICE_URL = 'http://10.211.13.240:8091';
+            const PYTHON_SERVICE_URL = 'http://10.211.13.240:8088';
             
             let currentUser = '';
             let currentRoom = '';

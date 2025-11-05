@@ -16,7 +16,7 @@ global:
   # Used in UI for making API calls
   externalServiceURLs:
     goService: "http://10.211.13.240:8080"
-    pythonService: "http://10.211.13.240:8091"
+    pythonService: "http://10.211.13.240:8088"
     javaService: "http://10.211.13.240:8090"
 
 # Zookeeper configuration
@@ -79,8 +79,8 @@ pythonService:
     tag: latest
   service:
     type: ClusterIP
-    httpPort: 8091
-    grpcPort: 50052
+    httpPort: 8088
+    grpcPort: 8087
   env:
     kafkaBootstrapServers: "kafka:29092"
     # Override with custom Kafka host if needed (e.g., localhost:9092 for local dev)
@@ -113,12 +113,12 @@ javaService:
   service:
     type: ClusterIP
     httpPort: 8090
-    grpcPort: 9090
+    grpcPort: 8089
   env:
     springKafkaBootstrapServers: "kafka:29092"
     pythonServiceHost: "python-service"
-    pythonServiceHttpPort: "8091"
-    pythonServiceGrpcPort: "50052"
+    pythonServiceHttpPort: "8088"
+    pythonServiceGrpcPort: "8087"
     # Override with custom hosts if needed (e.g., localhost for local dev)
     # pythonServiceHost: "localhost"
   resources:
@@ -156,7 +156,7 @@ goService:
   env:
     javaServiceHost: "java-service"
     javaServiceHttpPort: "8090"
-    javaServiceGrpcPort: "9090"
+    javaServiceGrpcPort: "8089"
     # Override with custom hosts if needed (e.g., localhost for local dev)
     # javaServiceHost: "localhost"
   resources:
@@ -188,7 +188,7 @@ ui:
     tag: alpine
   service:
     type: LoadBalancer
-    port: 80
+    port: 8000
   # ConfigMap for index.html
   # The URLs will be automatically configured based on global.externalServiceURLs
   configureIndexHtml: true
@@ -226,7 +226,7 @@ ingress:
     - path: /
       pathType: Prefix
       service: ui
-      port: 80
+      port: 8000
     - path: /api/go
       pathType: Prefix
       service: go-service
@@ -238,7 +238,7 @@ ingress:
     - path: /api/python
       pathType: Prefix
       service: python-service
-      port: 8091
+      port: 8088
 
 # Node selector for pod assignment
 nodeSelector: {}

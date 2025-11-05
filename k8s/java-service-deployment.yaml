@@ -11,7 +11,7 @@ spec:
     - port: 8090
       targetPort: 8090
       name: http
-    - port: 9090
+    - port: 8089
       targetPort: 9090
       name: grpc
   selector:
@@ -47,9 +47,9 @@ spec:
             - name: PYTHON_SERVICE_HOST
               value: "python-service"
             - name: PYTHON_SERVICE_HTTP_PORT
-              value: "8091"
+              value: "8088"
             - name: PYTHON_SERVICE_GRPC_PORT
-              value: "50052"
+              value: "8087"
           resources:
             requests:
               memory: "512Mi"

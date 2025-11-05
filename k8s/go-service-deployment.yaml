@@ -42,7 +42,7 @@ spec:
             - name: JAVA_SERVICE_HTTP_PORT
               value: "8090"
             - name: JAVA_SERVICE_GRPC_PORT
-              value: "9090"
+              value: "8089"
           resources:
             requests:
               memory: "128Mi"

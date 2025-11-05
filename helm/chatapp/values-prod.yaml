@@ -7,7 +7,7 @@ global:
   externalIP: "10.211.13.240"
   externalServiceURLs:
     goService: "http://10.211.13.240:8080"
-    pythonService: "http://10.211.13.240:8091"
+    pythonService: "http://10.211.13.240:8088"
     javaService: "http://10.211.13.240:8090"
   # Uncomment and configure for private registry
   # imagePullSecrets:
