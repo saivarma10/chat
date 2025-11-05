@@ -1,0 +1,91 @@
+# Development values for chatapp
+# Override default values for development deployment
+
+global:
+  imagePullPolicy: IfNotPresent
+
+# Development Zookeeper configuration
+zookeeper:
+  replicas: 1
+  persistence:
+    enabled: false
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
+    limits:
+      memory: "256Mi"
+      cpu: "250m"
+
+# Development Kafka configuration
+kafka:
+  replicas: 1
+  persistence:
+    enabled: false
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+
+# Development Python service
+pythonService:
+  replicas: 1
+  env:
+    # For local development, you might use localhost
+    # kafkaBootstrapServers: "localhost:9092"
+    kafkaBootstrapServers: "kafka:29092"
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
+    limits:
+      memory: "256Mi"
+      cpu: "250m"
+
+# Development Java service
+javaService:
+  replicas: 1
+  env:
+    springKafkaBootstrapServers: "kafka:29092"
+    pythonServiceHost: "python-service"
+    pythonServiceHttpPort: "8091"
+    pythonServiceGrpcPort: "50052"
+    # For local development outside cluster:
+    # pythonServiceHost: "localhost"
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+
+# Development Go service
+goService:
+  replicas: 1
+  env:
+    javaServiceHost: "java-service"
+    javaServiceHttpPort: "8090"
+    javaServiceGrpcPort: "9090"
+    # For local development outside cluster:
+    # javaServiceHost: "localhost"
+  resources:
+    requests:
+      memory: "64Mi"
+      cpu: "50m"
+    limits:
+      memory: "128Mi"
+      cpu: "100m"
+
+# Development UI
+ui:
+  replicas: 1
+  service:
+    type: NodePort
+
+# Development Ingress
+ingress:
+  enabled: false

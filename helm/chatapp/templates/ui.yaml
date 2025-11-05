@@ -1,0 +1,98 @@
+{{- if .Values.ui.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ui-config
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    app: {{ .Values.ui.name }}
+    {{- include "chatapp.labels" . | nindent 4 }}
+data:
+  index.html: |
+{{ .Values.ui.indexHtml | indent 4 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ui-service
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    app: {{ .Values.ui.name }}
+    {{- include "chatapp.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.ui.service.type }}
+  ports:
+    - port: {{ .Values.ui.service.port }}
+      targetPort: 80
+      name: http
+  selector:
+    app: {{ .Values.ui.name }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.ui.name }}
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    app: {{ .Values.ui.name }}
+    {{- include "chatapp.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.ui.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.ui.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.ui.name }}
+    spec:
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: nginx
+          image: "{{ .Values.ui.image.repository }}:{{ .Values.ui.image.tag }}"
+          imagePullPolicy: {{ .Values.global.imagePullPolicy }}
+          ports:
+            - containerPort: 80
+              name: http
+          volumeMounts:
+            - name: ui-html
+              mountPath: /usr/share/nginx/html
+              readOnly: true
+          resources:
+            {{- toYaml .Values.ui.resources | nindent 12 }}
+          {{- if .Values.ui.probes.liveness.enabled }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.ui.probes.liveness.path }}
+              port: 80
+            initialDelaySeconds: {{ .Values.ui.probes.liveness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.ui.probes.liveness.periodSeconds }}
+          {{- end }}
+          {{- if .Values.ui.probes.readiness.enabled }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.ui.probes.readiness.path }}
+              port: 80
+            initialDelaySeconds: {{ .Values.ui.probes.readiness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.ui.probes.readiness.periodSeconds }}
+          {{- end }}
+      volumes:
+        - name: ui-html
+          configMap:
+            name: ui-config
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

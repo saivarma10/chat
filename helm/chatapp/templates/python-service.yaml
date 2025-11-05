@@ -1,0 +1,84 @@
+{{- if .Values.pythonService.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.pythonService.name }}
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    app: {{ .Values.pythonService.name }}
+    {{- include "chatapp.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.pythonService.service.type }}
+  ports:
+    - port: {{ .Values.pythonService.service.httpPort }}
+      targetPort: {{ .Values.pythonService.service.httpPort }}
+      name: http
+    - port: {{ .Values.pythonService.service.grpcPort }}
+      targetPort: {{ .Values.pythonService.service.grpcPort }}
+      name: grpc
+  selector:
+    app: {{ .Values.pythonService.name }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.pythonService.name }}
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    app: {{ .Values.pythonService.name }}
+    {{- include "chatapp.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.pythonService.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.pythonService.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.pythonService.name }}
+    spec:
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ .Values.pythonService.name }}
+          image: "{{ .Values.pythonService.image.repository }}:{{ .Values.pythonService.image.tag }}"
+          imagePullPolicy: {{ .Values.global.imagePullPolicy }}
+          ports:
+            - containerPort: {{ .Values.pythonService.service.httpPort }}
+              name: http
+            - containerPort: {{ .Values.pythonService.service.grpcPort }}
+              name: grpc
+          env:
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              value: {{ .Values.pythonService.env.kafkaBootstrapServers | quote }}
+          resources:
+            {{- toYaml .Values.pythonService.resources | nindent 12 }}
+          {{- if .Values.pythonService.probes.liveness.enabled }}
+          livenessProbe:
+            tcpSocket:
+              port: {{ .Values.pythonService.service.httpPort }}
+            initialDelaySeconds: {{ .Values.pythonService.probes.liveness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.pythonService.probes.liveness.periodSeconds }}
+          {{- end }}
+          {{- if .Values.pythonService.probes.readiness.enabled }}
+          readinessProbe:
+            tcpSocket:
+              port: {{ .Values.pythonService.service.httpPort }}
+            initialDelaySeconds: {{ .Values.pythonService.probes.readiness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.pythonService.probes.readiness.periodSeconds }}
+          {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

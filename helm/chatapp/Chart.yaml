@@ -1,0 +1,16 @@
+apiVersion: v2
+name: chatapp
+description: A Helm chart for ChatApp - Multi-service chat application with Kafka
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+keywords:
+  - chat
+  - kafka
+  - microservices
+  - grpc
+maintainers:
+  - name: ChatApp Team
+home: https://github.com/yourusername/chatapp
+sources:
+  - https://github.com/yourusername/chatapp

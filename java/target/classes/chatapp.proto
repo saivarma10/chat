@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+package chatapp;
+
+option go_package = "./proto";
+option java_package = "com.chatapp.grpc";
+option java_outer_classname = "ChatAppProto";
+option java_multiple_files = true;
+
+service RoomService {
+  rpc CreateRoom (RoomRequest) returns (RoomResponse);
+}
+
+service MessageService {
+  rpc SendMessage (MessageRequest) returns (MessageResponse);
+}
+
+message RoomRequest {
+  string username = 1;
+  string roomid = 2;
+}
+
+message RoomResponse {
+  string status = 1;
+  string message = 2;
+}
+
+message MessageRequest {
+  string username = 1;
+  string roomid = 2;
+  string message = 3;
+}
+
+message MessageResponse {
+  string status = 1;
+}

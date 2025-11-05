@@ -1,0 +1,85 @@
+{{- if .Values.goService.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.goService.name }}
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    app: {{ .Values.goService.name }}
+    {{- include "chatapp.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.goService.service.type }}
+  ports:
+    - port: {{ .Values.goService.service.httpPort }}
+      targetPort: {{ .Values.goService.service.httpPort }}
+      name: http
+  selector:
+    app: {{ .Values.goService.name }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.goService.name }}
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    app: {{ .Values.goService.name }}
+    {{- include "chatapp.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.goService.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.goService.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.goService.name }}
+    spec:
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ .Values.goService.name }}
+          image: "{{ .Values.goService.image.repository }}:{{ .Values.goService.image.tag }}"
+          imagePullPolicy: {{ .Values.global.imagePullPolicy }}
+          ports:
+            - containerPort: {{ .Values.goService.service.httpPort }}
+              name: http
+          env:
+            - name: JAVA_SERVICE_HOST
+              value: {{ .Values.goService.env.javaServiceHost | quote }}
+            - name: JAVA_SERVICE_HTTP_PORT
+              value: {{ .Values.goService.env.javaServiceHttpPort | quote }}
+            - name: JAVA_SERVICE_GRPC_PORT
+              value: {{ .Values.goService.env.javaServiceGrpcPort | quote }}
+          resources:
+            {{- toYaml .Values.goService.resources | nindent 12 }}
+          {{- if .Values.goService.probes.liveness.enabled }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.goService.probes.liveness.path }}
+              port: {{ .Values.goService.service.httpPort }}
+            initialDelaySeconds: {{ .Values.goService.probes.liveness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.goService.probes.liveness.periodSeconds }}
+          {{- end }}
+          {{- if .Values.goService.probes.readiness.enabled }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.goService.probes.readiness.path }}
+              port: {{ .Values.goService.service.httpPort }}
+            initialDelaySeconds: {{ .Values.goService.probes.readiness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.goService.probes.readiness.periodSeconds }}
+          {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

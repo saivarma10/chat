@@ -1,0 +1,249 @@
+# Default values for chatapp.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+global:
+  namespace: chatapp
+  imagePullPolicy: IfNotPresent
+  # If using a private registry, specify imagePullSecrets
+  imagePullSecrets: []
+  # - name: regcred
+
+# Zookeeper configuration
+zookeeper:
+  enabled: true
+  replicas: 1
+  image:
+    repository: confluentinc/cp-zookeeper
+    tag: "7.5.0"
+  service:
+    port: 2181
+  env:
+    clientPort: "2181"
+    tickTime: "2000"
+  persistence:
+    enabled: true
+    storageClass: ""
+    dataSize: 1Gi
+    logsSize: 1Gi
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+
+# Kafka configuration
+kafka:
+  enabled: true
+  replicas: 1
+  image:
+    repository: confluentinc/cp-kafka
+    tag: "7.5.0"
+  service:
+    plaintextPort: 9092
+    internalPort: 29092
+  env:
+    brokerId: "1"
+    offsetsTopicReplicationFactor: "1"
+  persistence:
+    enabled: true
+    storageClass: ""
+    size: 2Gi
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "500m"
+    limits:
+      memory: "1Gi"
+      cpu: "1000m"
+
+# Python service configuration
+pythonService:
+  enabled: true
+  name: python-service
+  replicas: 2
+  image:
+    repository: varmasai10/chatapp-python
+    tag: latest
+  service:
+    type: ClusterIP
+    httpPort: 8091
+    grpcPort: 50052
+  env:
+    kafkaBootstrapServers: "kafka:29092"
+    # Override with custom Kafka host if needed (e.g., localhost:9092 for local dev)
+    # kafkaBootstrapServers: "localhost:9092"
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+  probes:
+    liveness:
+      enabled: true
+      initialDelaySeconds: 30
+      periodSeconds: 10
+    readiness:
+      enabled: true
+      initialDelaySeconds: 15
+      periodSeconds: 5
+
+# Java service configuration
+javaService:
+  enabled: true
+  name: java-service
+  replicas: 2
+  image:
+    repository: varmasai10/chatapp-java
+    tag: latest
+  service:
+    type: ClusterIP
+    httpPort: 8090
+    grpcPort: 9090
+  env:
+    springKafkaBootstrapServers: "kafka:29092"
+    pythonServiceHost: "python-service"
+    pythonServiceHttpPort: "8091"
+    pythonServiceGrpcPort: "50052"
+    # Override with custom hosts if needed (e.g., localhost for local dev)
+    # pythonServiceHost: "localhost"
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "500m"
+    limits:
+      memory: "1Gi"
+      cpu: "1000m"
+  probes:
+    liveness:
+      enabled: true
+      path: /actuator/health
+      initialDelaySeconds: 60
+      periodSeconds: 10
+      failureThreshold: 3
+    readiness:
+      enabled: true
+      path: /actuator/health
+      initialDelaySeconds: 30
+      periodSeconds: 5
+      failureThreshold: 3
+
+# Go service configuration
+goService:
+  enabled: true
+  name: go-service
+  replicas: 2
+  image:
+    repository: varmasai10/chatapp-go
+    tag: latest
+  service:
+    type: ClusterIP
+    httpPort: 8080
+  env:
+    javaServiceHost: "java-service"
+    javaServiceHttpPort: "8090"
+    javaServiceGrpcPort: "9090"
+    # Override with custom hosts if needed (e.g., localhost for local dev)
+    # javaServiceHost: "localhost"
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
+    limits:
+      memory: "256Mi"
+      cpu: "200m"
+  probes:
+    liveness:
+      enabled: true
+      path: /
+      initialDelaySeconds: 30
+      periodSeconds: 10
+    readiness:
+      enabled: true
+      path: /
+      initialDelaySeconds: 15
+      periodSeconds: 5
+
+# UI configuration
+ui:
+  enabled: true
+  name: ui
+  replicas: 2
+  image:
+    repository: nginx
+    tag: alpine
+  service:
+    type: LoadBalancer
+    port: 80
+  # Override with your index.html content
+  indexHtml: |
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>ChatApp</title>
+    </head>
+    <body>
+      <h1>ChatApp</h1>
+      <p>Please update ui.indexHtml in values.yaml</p>
+    </body>
+    </html>
+  resources:
+    requests:
+      memory: "64Mi"
+      cpu: "50m"
+    limits:
+      memory: "128Mi"
+      cpu: "100m"
+  probes:
+    liveness:
+      enabled: true
+      path: /
+      initialDelaySeconds: 10
+      periodSeconds: 10
+    readiness:
+      enabled: true
+      path: /
+      initialDelaySeconds: 5
+      periodSeconds: 5
+
+# Ingress configuration
+ingress:
+  enabled: false
+  className: nginx
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+  host: chatapp.local
+  tls:
+    enabled: false
+    secretName: chatapp-tls
+  paths:
+    - path: /
+      pathType: Prefix
+      service: ui
+      port: 80
+    - path: /api/go
+      pathType: Prefix
+      service: go-service
+      port: 8080
+    - path: /api/java
+      pathType: Prefix
+      service: java-service
+      port: 8090
+    - path: /api/python
+      pathType: Prefix
+      service: python-service
+      port: 8091
+
+# Node selector for pod assignment
+nodeSelector: {}
+
+# Tolerations for pod assignment
+tolerations: []
+
+# Affinity for pod assignment
+affinity: {}

@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat App</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #f5f5f5; }
+        .container { max-width: 800px; margin: 20px auto; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        
+        /* Join Form */
+        .join-section { padding: 30px; }
+        .join-section.hidden { display: none; }
+        h1 { color: #333; margin-bottom: 20px; text-align: center; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; color: #555; font-weight: bold; }
+        input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }
+        button { width: 100%; padding: 12px; background: #007bff; color: white; border: none; border-radius: 4px; font-size: 16px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        
+        /* Chat Section */
+        .chat-section { display: none; height: 600px; flex-direction: column; }
+        .chat-section.active { display: flex; }
+        .chat-header { padding: 20px; background: #007bff; color: white; display: flex; justify-content: space-between; align-items: center; }
+        .chat-header h2 { margin: 0; }
+        .leave-btn { padding: 8px 16px; background: #dc3545; border: none; color: white; border-radius: 4px; cursor: pointer; }
+        .leave-btn:hover { background: #c82333; }
+        
+        .messages { flex: 1; padding: 20px; overflow-y: auto; background: #f9f9f9; }
+        .message { margin-bottom: 15px; padding: 10px 15px; background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .message .user { font-weight: bold; color: #007bff; margin-bottom: 5px; }
+        .message .text { color: #333; }
+        .message .time { font-size: 11px; color: #999; margin-top: 5px; }
+        
+        .message-input { display: flex; padding: 20px; border-top: 1px solid #ddd; }
+        .message-input input { flex: 1; margin-right: 10px; }
+        .message-input button { width: auto; padding: 10px 20px; }
+        
+        .status { padding: 10px; text-align: center; background: #d4edda; color: #155724; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Join Section -->
+        <div class="join-section" id="joinSection">
+            <h1>🚀 Chat App</h1>
+            
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" placeholder="Enter username" value="john">
+            </div>
+            
+            <div class="form-group">
+                <label for="roomid">Room ID</label>
+                <input type="text" id="roomid" placeholder="Enter room ID" value="room123">
+            </div>
+            
+            <button onclick="joinRoom()">Join Room (HTTP)</button>
+        </div>
+        
+        <div class="form-group" style="margin-top: 10px;">
+            <button onclick="joinGrpcRoom()" style="background: #28a745;">Join Room (gRPC)</button>
+        </div>
+
+        <!-- Chat Section -->
+        <div class="chat-section" id="chatSection">
+            <div class="chat-header">
+                <h2 id="roomTitle">Room: <span id="roomName"></span></h2>
+                <button class="leave-btn" onclick="leaveRoom()">Leave Room</button>
+            </div>
+            
+            <div id="status" class="status" style="display: none;"></div>
+            
+            <div class="messages" id="messages"></div>
+            
+            <div class="message-input">
+                <input type="text" id="messageInput" placeholder="Type a message..." onkeypress="handleKeyPress(event)">
+                <button onclick="sendMessage()">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentUser = '';
+        let currentRoom = '';
+        let messagePolling;
+        
+        async function joinRoom() {
+            const username = document.getElementById('username').value;
+            const roomid = document.getElementById('roomid').value;
+            
+            if (!username || !roomid) {
+                alert('Please fill in all fields');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`http://localhost:8080/joinroom?username=${username}&roomid=${roomid}`);
+                
+                if (response.ok) {
+                    currentUser = username;
+                    currentRoom = roomid;
+                    
+                    document.getElementById('joinSection').classList.add('hidden');
+                    document.getElementById('chatSection').classList.add('active');
+                    document.getElementById('roomName').textContent = roomid + ' (HTTP)';
+                    
+                    showStatus(`✅ Joined room ${roomid} via HTTP!`);
+                    
+                    messagePolling = setInterval(fetchMessages, 2000);
+                    fetchMessages();
+                } else {
+                    alert('Failed to join room');
+                }
+            } catch (error) {
+                alert('Error: Make sure all services are running!');
+            }
+        }
+        
+        async function joinGrpcRoom() {
+            const username = document.getElementById('username').value;
+            const roomid = document.getElementById('roomid').value;
+            
+            if (!username || !roomid) {
+                alert('Please fill in all fields');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`http://localhost:8080/joingrpcroom?username=${username}&roomid=${roomid}`);
+                
+                if (response.ok) {
+                    currentUser = username;
+                    currentRoom = roomid;
+                    
+                    document.getElementById('joinSection').classList.add('hidden');
+                    document.getElementById('chatSection').classList.add('active');
+                    document.getElementById('roomName').textContent = roomid + ' (gRPC)';
+                    
+                    showStatus(`✅ Joined room ${roomid} via gRPC!`);
+                    
+                    messagePolling = setInterval(fetchMessages, 2000);
+                    fetchMessages();
+                } else {
+                    alert('Failed to join room via gRPC');
+                }
+            } catch (error) {
+                alert('Error: Make sure all services are running!');
+            }
+        }
+        
+        function leaveRoom() {
+            clearInterval(messagePolling);
+            currentUser = '';
+            currentRoom = '';
+            
+            document.getElementById('joinSection').classList.remove('hidden');
+            document.getElementById('chatSection').classList.remove('active');
+            document.getElementById('messages').innerHTML = '';
+        }
+        
+        async function sendMessage() {
+            const messageInput = document.getElementById('messageInput');
+            const message = messageInput.value.trim();
+            
+            if (!message) return;
+            
+            try {
+                const response = await fetch('http://localhost:8091/message', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username: currentUser,
+                        roomid: currentRoom,
+                        message: message
+                    })
+                });
+                
+                if (response.ok) {
+                    messageInput.value = '';
+                    showStatus('Message sent to Kafka!');
+                    setTimeout(() => fetchMessages(), 500);
+                }
+            } catch (error) {
+                alert('Failed to send message');
+            }
+        }
+        
+        async function fetchMessages() {
+            try {
+                const response = await fetch(`http://localhost:8091/messages?roomid=${currentRoom}`);
+                if (response.ok) {
+                    const messages = await response.json();
+                    displayMessages(messages);
+                }
+            } catch (error) {
+                console.error('Error fetching messages:', error);
+            }
+        }
+        
+        function displayMessages(messages) {
+            const messagesDiv = document.getElementById('messages');
+            messagesDiv.innerHTML = '';
+            
+            messages.forEach(msg => {
+                const messageEl = document.createElement('div');
+                messageEl.className = 'message';
+                messageEl.innerHTML = `
+                    <div class="user">${msg.username}</div>
+                    <div class="text">${msg.message}</div>
+                    <div class="time">${new Date().toLocaleTimeString()}</div>
+                `;
+                messagesDiv.appendChild(messageEl);
+            });
+            
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+        
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+        
+        function showStatus(message) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.style.display = 'block';
+            setTimeout(() => { status.style.display = 'none'; }, 3000);
+        }
+    </script>
+</body>
+</html>

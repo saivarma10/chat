@@ -1,0 +1,113 @@
+# Production values for chatapp
+# Override default values for production deployment
+
+global:
+  imagePullPolicy: Always
+  # Uncomment and configure for private registry
+  # imagePullSecrets:
+  #   - name: regcred
+
+# Production Zookeeper configuration
+zookeeper:
+  replicas: 3
+  persistence:
+    storageClass: "fast-ssd"
+    dataSize: 5Gi
+    logsSize: 5Gi
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "500m"
+    limits:
+      memory: "1Gi"
+      cpu: "1000m"
+
+# Production Kafka configuration
+kafka:
+  replicas: 3
+  env:
+    offsetsTopicReplicationFactor: "3"
+  persistence:
+    storageClass: "fast-ssd"
+    size: 10Gi
+  resources:
+    requests:
+      memory: "1Gi"
+      cpu: "1000m"
+    limits:
+      memory: "2Gi"
+      cpu: "2000m"
+
+# Production Python service
+pythonService:
+  replicas: 3
+  image:
+    repository: registry.example.com/chatapp-python
+    tag: "1.0.0"
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "500m"
+    limits:
+      memory: "1Gi"
+      cpu: "1000m"
+
+# Production Java service
+javaService:
+  replicas: 3
+  image:
+    repository: registry.example.com/chatapp-java
+    tag: "1.0.0"
+  resources:
+    requests:
+      memory: "1Gi"
+      cpu: "1000m"
+    limits:
+      memory: "2Gi"
+      cpu: "2000m"
+
+# Production Go service
+goService:
+  replicas: 3
+  image:
+    repository: registry.example.com/chatapp-go
+    tag: "1.0.0"
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+
+# Production UI
+ui:
+  replicas: 3
+  service:
+    type: LoadBalancer
+
+# Production Ingress
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+  host: chatapp.example.com
+  tls:
+    enabled: true
+    secretName: chatapp-tls
+
+# Production node affinity - spread across availability zones
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+              - key: app
+                operator: In
+                values:
+                  - chatapp
+          topologyKey: topology.kubernetes.io/zone
