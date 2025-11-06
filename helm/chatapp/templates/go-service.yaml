@@ -9,6 +9,8 @@ metadata:
     {{- include "chatapp.labels" . | nindent 4 }}
 spec:
   type: {{ .Values.goService.service.type }}
+  externalIPs:
+    - {{ .Values.global.externalIP }}
   ports:
     - port: {{ .Values.goService.service.httpPort }}
       targetPort: {{ .Values.goService.service.httpPort }}
@@ -42,6 +44,7 @@ spec:
         - name: {{ .Values.goService.name }}
           image: "{{ .Values.goService.image.repository }}:{{ .Values.goService.image.tag }}"
           imagePullPolicy: {{ .Values.global.imagePullPolicy }}
+          command: ["./main"]
           ports:
             - containerPort: {{ .Values.goService.service.httpPort }}
               name: http
@@ -54,22 +57,22 @@ spec:
               value: {{ .Values.goService.env.javaServiceGrpcPort | quote }}
           resources:
             {{- toYaml .Values.goService.resources | nindent 12 }}
-          {{- if .Values.goService.probes.liveness.enabled }}
-          livenessProbe:
-            httpGet:
-              path: {{ .Values.goService.probes.liveness.path }}
-              port: {{ .Values.goService.service.httpPort }}
-            initialDelaySeconds: {{ .Values.goService.probes.liveness.initialDelaySeconds }}
-            periodSeconds: {{ .Values.goService.probes.liveness.periodSeconds }}
-          {{- end }}
-          {{- if .Values.goService.probes.readiness.enabled }}
-          readinessProbe:
-            httpGet:
-              path: {{ .Values.goService.probes.readiness.path }}
-              port: {{ .Values.goService.service.httpPort }}
-            initialDelaySeconds: {{ .Values.goService.probes.readiness.initialDelaySeconds }}
-            periodSeconds: {{ .Values.goService.probes.readiness.periodSeconds }}
-          {{- end }}
+          # {{- if .Values.goService.probes.liveness.enabled }}
+          # livenessProbe:
+          #   httpGet:
+          #     path: {{ .Values.goService.probes.liveness.path }}
+          #     port: {{ .Values.goService.service.httpPort }}
+          #   initialDelaySeconds: {{ .Values.goService.probes.liveness.initialDelaySeconds }}
+          #   periodSeconds: {{ .Values.goService.probes.liveness.periodSeconds }}
+          # {{- end }}
+          # {{- if .Values.goService.probes.readiness.enabled }}
+          # readinessProbe:
+          #   httpGet:
+          #     path: {{ .Values.goService.probes.readiness.path }}
+          #     port: {{ .Values.goService.service.httpPort }}
+          #   initialDelaySeconds: {{ .Values.goService.probes.readiness.initialDelaySeconds }}
+          #   periodSeconds: {{ .Values.goService.probes.readiness.periodSeconds }}
+          # {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

@@ -29,4 +29,4 @@ COPY --from=build /app/main .
 
 EXPOSE 8080
 
-CMD ["./main"]
+# CMD removed - will be specified in Kubernetes deployment

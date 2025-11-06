@@ -4,10 +4,9 @@ WORKDIR /app
 
 COPY java/pom.xml ./
 COPY java/src ./src
-COPY java/target/generated-sources ./target/generated-sources
 
-# Use package instead of clean package to preserve generated sources
-RUN mvn package -DskipTests
+# Build the project (this will generate sources and package)
+RUN mvn clean package -DskipTests
 
 FROM eclipse-temurin:17-jre
 
@@ -17,4 +16,4 @@ COPY --from=build /app/target/*.jar app.jar
 
 EXPOSE 8090 9090
 
-CMD ["java", "-jar", "app.jar"]
+# CMD removed - will be specified in Kubernetes deployment

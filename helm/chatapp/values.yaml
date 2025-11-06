@@ -16,7 +16,7 @@ global:
   # Used in UI for making API calls
   externalServiceURLs:
     goService: "http://10.211.13.240:8080"
-    pythonService: "http://10.211.13.240:8088"
+    pythonService: "http://10.211.13.240:8087"
     javaService: "http://10.211.13.240:8090"
 
 # Zookeeper configuration
@@ -73,14 +73,15 @@ kafka:
 pythonService:
   enabled: true
   name: python-service
-  replicas: 2
+  replicas: 1
   image:
     repository: varmasai10/chatapp-python
     tag: latest
   service:
     type: ClusterIP
-    httpPort: 8088
-    grpcPort: 8087
+    httpPort: 8087
+    httpTargetPort: 8091
+    grpcPort: 50052
   env:
     kafkaBootstrapServers: "kafka:29092"
     # Override with custom Kafka host if needed (e.g., localhost:9092 for local dev)
@@ -106,7 +107,7 @@ pythonService:
 javaService:
   enabled: true
   name: java-service
-  replicas: 2
+  replicas: 1
   image:
     repository: varmasai10/chatapp-java
     tag: latest
@@ -117,8 +118,8 @@ javaService:
   env:
     springKafkaBootstrapServers: "kafka:29092"
     pythonServiceHost: "python-service"
-    pythonServiceHttpPort: "8088"
-    pythonServiceGrpcPort: "8087"
+    pythonServiceHttpPort: "8087"
+    pythonServiceGrpcPort: "50052"
     # Override with custom hosts if needed (e.g., localhost for local dev)
     # pythonServiceHost: "localhost"
   resources:
@@ -146,7 +147,7 @@ javaService:
 goService:
   enabled: true
   name: go-service
-  replicas: 2
+  replicas: 1
   image:
     repository: varmasai10/chatapp-go
     tag: latest
@@ -187,7 +188,7 @@ ui:
     repository: nginx
     tag: alpine
   service:
-    type: LoadBalancer
+    type: ClusterIP
     port: 8000
   # ConfigMap for index.html
   # The URLs will be automatically configured based on global.externalServiceURLs
@@ -238,7 +239,7 @@ ingress:
     - path: /api/python
       pathType: Prefix
       service: python-service
-      port: 8088
+      port: 8087
 
 # Node selector for pod assignment
 nodeSelector: {}

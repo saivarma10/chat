@@ -28,4 +28,4 @@ message MessageResponse {\n\
 
 EXPOSE 8091 50051
 
-CMD ["python", "app.py"]
+# CMD removed - will be specified in Kubernetes deployment

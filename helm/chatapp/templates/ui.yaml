@@ -9,9 +9,14 @@ metadata:
     {{- include "chatapp.labels" . | nindent 4 }}
 spec:
   type: {{ .Values.ui.service.type }}
+  externalIPs:
+    - {{ .Values.global.externalIP }}
   ports:
     - port: {{ .Values.ui.service.port }}
       targetPort: 80
+      {{- if .Values.ui.service.nodePort }}
+      nodePort: {{ .Values.ui.service.nodePort }}
+      {{- end }}
       name: http
   selector:
     app: {{ .Values.ui.name }}

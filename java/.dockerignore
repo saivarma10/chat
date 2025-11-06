@@ -1,3 +1,5 @@
-target/
+target/*.jar.original
+target/maven-archiver
+target/maven-status
 *.db
 data/
